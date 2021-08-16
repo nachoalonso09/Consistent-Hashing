@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace ConsistentHashing
 {
-    static class Program
+    public static class Program
     {
         static int ServerCounter = 0;
         static List<Server> ServerNodes = new List<Server>();
 
-        static void AddServer()
+        public static void AddServer()
         {
             ServerCounter++;
             ServerNodes.Sort();
@@ -25,6 +25,11 @@ namespace ConsistentHashing
             Console.WriteLine("Enter serverId:");
             int serverId = Convert.ToInt32(Console.ReadLine());
 
+            RemoveServer(serverId);
+        }
+
+        public static void RemoveServer(int serverId)
+        {
             // Remove from the master ring
             ServerNodes.RemoveAll(server =>
             {
@@ -35,17 +40,15 @@ namespace ConsistentHashing
             {
                 itServer.NotifyRemovedServer(serverId);
             }
-            
         }
 
-        static void ListServers()
+        public static void ListServers()
         {
             ServerNodes.Sort();
 
             foreach (Server itServer in ServerNodes) {
                 Console.WriteLine(itServer.GetServerSummary());
             }
-
         }
 
         static void SendDataToServer()
@@ -56,14 +59,19 @@ namespace ConsistentHashing
             Console.WriteLine("Enter data:");
             string data = Console.ReadLine();
 
-            Server destination = ServerNodes.Find(server => 
+            SendDataToServer(serverId, data);
+        }
+
+        public static void SendDataToServer(int serverId, string data)
+        {
+            Server destination = ServerNodes.Find(server =>
             {
                 return server.GetServerId() == serverId;
             });
             destination.SaveDataInRing(data);
         }
 
-        static void GetDataFromServer()
+        static string GetDataFromServer()
         {
             Console.WriteLine("Enter source serverId:");
             int serverId = Convert.ToInt32(Console.ReadLine());
@@ -71,20 +79,27 @@ namespace ConsistentHashing
             Console.WriteLine("Enter hash:");
             string data = Console.ReadLine();
 
+            string result = GetDataFromServer(serverId, data);
+
+            if (result != null)
+            {
+                Console.WriteLine("RESULT: " + result);
+            }
+            else
+            {
+                Console.WriteLine("RESULT NOT FOUND.");
+            }
+            return result;
+        }
+
+        public static string GetDataFromServer(int serverId, string data)
+        {
             Server source = ServerNodes.Find(server =>
             {
                 return server.GetServerId() == serverId;
             });
 
-            string result = source.GetDataFromRing(data);
-            if (result != null)
-            {
-                Console.WriteLine("RESULT: " + result);
-            }
-            else 
-            {
-                Console.WriteLine("RESULT NOT FOUND.");
-            }
+            return source.GetDataFromRing(data);
         }
 
         static void Main(string[] args)
